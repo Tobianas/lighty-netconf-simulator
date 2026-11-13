@@ -18,8 +18,8 @@ import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.subscribed.
 import org.opendaylight.yangtools.binding.runtime.spi.BindingRuntimeHelpers;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.model.api.EffectiveModelContext;
-import org.opendaylight.yangtools.yang.model.api.NotificationDefinition;
-import org.opendaylight.yangtools.yang.model.api.RpcDefinition;
+import org.opendaylight.yangtools.yang.model.api.stmt.NotificationEffectiveStatement;
+import org.opendaylight.yangtools.yang.model.api.stmt.RpcEffectiveStatement;
 
 class ModelUtilsTest {
 
@@ -32,10 +32,10 @@ class ModelUtilsTest {
 
     @Test
     void testLoadRpc() {
-        final Optional<? extends RpcDefinition> loadedRpc =
+        final Optional<RpcEffectiveStatement> loadedRpc =
             ModelUtils.loadRpc(effectiveModelContext, EstablishSubscription.QNAME);
         assertTrue(loadedRpc.isPresent());
-        assertEquals(EstablishSubscription.QNAME, loadedRpc.orElseThrow().getQName());
+        assertEquals(EstablishSubscription.QNAME, loadedRpc.orElseThrow().argument());
     }
 
     @Test
@@ -47,10 +47,10 @@ class ModelUtilsTest {
 
     @Test
     void testLoadNotification() {
-        final Optional<? extends NotificationDefinition> loadedNotification =
+        final Optional<NotificationEffectiveStatement> loadedNotification =
             ModelUtils.loadNotification(effectiveModelContext, SubscriptionStarted.QNAME);
         assertTrue(loadedNotification.isPresent());
-        assertEquals(SubscriptionStarted.QNAME, loadedNotification.orElseThrow().getQName());
+        assertEquals(SubscriptionStarted.QNAME, loadedNotification.orElseThrow().argument());
     }
 
     @Test

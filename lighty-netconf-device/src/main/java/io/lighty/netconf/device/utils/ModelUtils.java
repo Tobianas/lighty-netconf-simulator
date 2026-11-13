@@ -19,10 +19,11 @@ import java.util.Set;
 import org.opendaylight.yangtools.binding.meta.YangModuleInfo;
 import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.model.api.EffectiveModelContext;
+import org.opendaylight.yangtools.yang.model.api.EffectiveStatementEquivalent;
 import org.opendaylight.yangtools.yang.model.api.Module;
-import org.opendaylight.yangtools.yang.model.api.NotificationDefinition;
-import org.opendaylight.yangtools.yang.model.api.RpcDefinition;
-import org.opendaylight.yangtools.yang.model.api.SchemaNode;
+import org.opendaylight.yangtools.yang.model.api.stmt.NotificationEffectiveStatement;
+import org.opendaylight.yangtools.yang.model.api.stmt.RpcEffectiveStatement;
+import org.opendaylight.yangtools.yang.model.api.stmt.SchemaTreeEffectiveStatement;
 
 public final class ModelUtils {
 
@@ -48,30 +49,30 @@ public final class ModelUtils {
     }
 
     /**
-     * Returns the {@link RpcDefinition} identified by the given {@link QName}.
+     * Returns the {@link RpcEffectiveStatement} identified by the given {@link QName}.
      *
      * <p>If the {@link QName} has no revision, the module is looked up by namespace only and must be unique.
      *
      * @param effectiveModelContext model context to search
      * @param rpcQName {@link QName} of the RPC
-     * @return found {@link RpcDefinition}, or empty if it is not found or is ambiguous
+     * @return found {@link RpcEffectiveStatement}, or empty if it is not found or is ambiguous
      */
-    public static Optional<? extends RpcDefinition> loadRpc(final EffectiveModelContext effectiveModelContext,
+    public static Optional<RpcEffectiveStatement> loadRpc(final EffectiveModelContext effectiveModelContext,
             final QName rpcQName) {
         return findModule(effectiveModelContext, rpcQName)
             .flatMap(module -> findDefinition(rpcQName, module.getRpcs()));
     }
 
     /**
-     * Returns the {@link NotificationDefinition} identified by the given {@link QName}.
+     * Returns the {@link NotificationEffectiveStatement} identified by the given {@link QName}.
      *
      * <p>If the {@link QName} has no revision, the module is looked up by namespace only and must be unique.
      *
      * @param effectiveModelContext model context to search
      * @param notificationQName {@link QName} of the notification
-     * @return found {@link NotificationDefinition}, or empty if it is not found or is ambiguous
+     * @return found {@link NotificationEffectiveStatement}, or empty if it is not found or is ambiguous
      */
-    public static Optional<? extends NotificationDefinition> loadNotification(
+    public static Optional<NotificationEffectiveStatement> loadNotification(
             final EffectiveModelContext effectiveModelContext, final QName notificationQName) {
         return findModule(effectiveModelContext, notificationQName)
             .flatMap(module -> findDefinition(notificationQName, module.getNotifications()));
@@ -86,9 +87,11 @@ public final class ModelUtils {
         return modules.size() == 1 ? Optional.of(modules.iterator().next()) : Optional.empty();
     }
 
-    private static <T extends SchemaNode> Optional<T> findDefinition(final QName qname, final Collection<T> nodes) {
-        final List<T> found = nodes.stream()
-            .filter(node -> node.getQName().getLocalName().equals(qname.getLocalName()))
+    private static <E extends SchemaTreeEffectiveStatement<?>> Optional<E> findDefinition(final QName qname,
+            final Collection<? extends EffectiveStatementEquivalent<E>> nodes) {
+        final List<E> found = nodes.stream()
+            .map(EffectiveStatementEquivalent::asEffectiveStatement)
+            .filter(stmt -> stmt.argument().getLocalName().equals(qname.getLocalName()))
             .toList();
         return found.size() == 1 ? Optional.of(found.get(0)) : Optional.empty();
     }
